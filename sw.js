@@ -1,8 +1,12 @@
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open("kelime-ezber-v1").then((cache) => cache.addAll([
-      "./index_full_features.html",
-      "./manifest.json"
+    caches.open("kelime-ezber-v2").then((cache) => cache.addAll([
+      "./",
+      "./index.html",
+      "./manifest.json",
+      "./sw.js",
+      "./icon-192.png",
+      "./icon-512.png"
     ]))
   );
   self.skipWaiting();
