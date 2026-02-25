@@ -1,0 +1,1329 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kelime Ezber</title>
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#121a24; --muted:#92a4b8; --text:#e7eef7;
+      --acc:#4aa3ff; --good:#39d98a; --bad:#ff5c7a; --warn:#ffcc66;
+      --b:#223042; --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#070a0f,#0b0f14);color:var(--text)}
+    header{
+      position:sticky;top:0;z-index:50;
+      background:rgba(11,15,20,.72);backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--b);
+    }
+    .bar{display:flex;align-items:center;gap:10px;padding:12px 14px}
+    .btn{
+      border:1px solid var(--b);background:transparent;color:var(--text);
+      padding:10px 12px;border-radius:14px;cursor:pointer;
+    }
+    .btn.primary{background:rgba(74,163,255,.15);border-color:rgba(74,163,255,.35)}
+    .btn.good{background:rgba(57,217,138,.18);border-color:rgba(57,217,138,.55)}
+    .btn.bad{background:rgba(255,92,122,.18);border-color:rgba(255,92,122,.55)}
+    .btn.warn{background:rgba(255,204,102,.12);border-color:rgba(255,204,102,.35)}
+    .btn:active{transform:translateY(1px)}
+    .grow{flex:1}
+    .title{font-weight:700}
+    .subtitle{color:var(--muted);font-size:12px;margin-top:2px}
+    main{max-width:980px;margin:0 auto;padding:14px}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:900px){.grid{grid-template-columns:340px 1fr}}
+    .card{
+      background:rgba(18,26,36,.72); border:1px solid var(--b);
+      border-radius:var(--r); box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    select,input,textarea{
+      width:100%; padding:10px 12px;border-radius:14px;
+      border:1px solid var(--b); background:#0d141d; color:var(--text);
+      outline:none;
+    }
+    textarea{min-height:120px;resize:vertical}
+    .small{font-size:12px;color:var(--muted);line-height:1.4}
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:7px 10px;border-radius:999px;border:1px solid var(--b);color:var(--muted);font-size:12px}
+    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .kpi .box{border:1px solid var(--b);border-radius:14px;padding:10px;background:rgba(13,20,29,.6)}
+    .kpi .num{font-weight:800;font-size:18px}
+    .kpi .lab{color:var(--muted);font-size:12px;margin-top:2px}
+    .divider{height:1px;background:var(--b);margin:12px 0}
+    .answers{display:grid;gap:10px;margin-top:12px}
+    .answers button{text-align:left}
+    .toast{
+      position:fixed;left:50%;bottom:16px;transform:translateX(-50%);
+      background:rgba(13,20,29,.92);border:1px solid var(--b);
+      padding:10px 12px;border-radius:14px;box-shadow:var(--shadow);
+      color:var(--text);font-size:13px;display:none;max-width:min(520px,92vw);z-index:100;
+    }
+    /* Drawer */
+    .drawerBack{
+      position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:60;
+    }
+    .drawer{
+      position:fixed;top:0;left:0;height:100%;width:min(420px,92vw);
+      background:rgba(11,15,20,.98);border-right:1px solid var(--b);
+      padding:14px;transform:translateX(-105%);transition:.18s ease;z-index:61;overflow:auto;
+    }
+    .drawer.open{transform:translateX(0)}
+    .drawerBack.show{display:block}
+    .sectionTitle{font-weight:800;margin:14px 0 8px}
+    .danger{color:#ffb4c1}
+    .promptBox{background:rgba(74,163,255,.10);border:1px solid rgba(74,163,255,.25);padding:10px;border-radius:14px}
+    code{color:#cfe3ff}
+
+    /* Play area improvements */
+    #playCard{position:relative}
+    .playFooter{
+      position:sticky; bottom:0; z-index:20;
+      margin-top:12px;
+      background:rgba(11,15,20,.92);
+      border:1px solid var(--b);
+      border-radius:14px;
+      padding:10px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+    }
+    .wordRow{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .wordCard{
+      flex:1;
+      min-width:220px;
+      padding:12px 12px;
+      border:1px solid var(--b);
+      border-radius:16px;
+      background:rgba(13,20,29,.55);
+      cursor:pointer;
+      user-select:none;
+    }
+    .wordBig{font-size:28px;font-weight:900;letter-spacing:.2px}
+    .sideInfo{
+      min-width:220px;
+      flex:1;
+      padding:12px 12px;
+      border:1px solid var(--b);
+      border-radius:16px;
+      background:rgba(13,20,29,.55);
+    }
+    .badgeOk{color:var(--good);font-weight:900}
+    .badgeBad{color:var(--bad);font-weight:900}
+    .meaningInline{
+      margin-top:6px;
+      color:#cfe3ff;
+      line-height:1.4;
+      font-size:15px;
+      word-break:break-word;
+    }
+
+    /* Option marking */
+    .optCorrect{
+      background:rgba(57,217,138,.22) !important;
+      border-color:rgba(57,217,138,.7) !important;
+    }
+    .optWrong{
+      background:rgba(255,92,122,.22) !important;
+      border-color:rgba(255,92,122,.7) !important;
+    }
+  
+    /* Sticky MCQ answers */
+    .mcqSticky{
+      position: sticky;
+      bottom: 76px; /* footer height buffer */
+      z-index: 15;
+      background: rgba(11,15,20,.92);
+      border: 1px solid var(--b);
+      border-radius: 14px;
+      padding: 10px;
+      backdrop-filter: blur(8px);
+    }
+
+  
+    /* Sticky question (word card area) */
+    .questionSticky{
+      position: sticky;
+      top: 0;
+      z-index: 16;
+      background: rgba(11,15,20,.92);
+      border: 1px solid var(--b);
+      border-radius: 14px;
+      padding: 10px;
+      backdrop-filter: blur(8px);
+    }
+    .progressWrap{
+      margin-top: 10px;
+      border: 1px solid var(--b);
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(13,20,29,.55);
+      height: 12px;
+    }
+    .progressBar{
+      height: 100%;
+      width: 0%;
+      background: rgba(74,163,255,.55);
+    }
+    .progressText{
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+  </style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <button class="btn" id="menuBtn">☰</button>
+    <div class="grow">
+      <div class="title">Kelime Ezber</div>
+      <div class="subtitle" id="subtitle">Hazır</div>
+    </div>
+    <button class="btn" id="exportBtn">Dışa Aktar</button>
+  </div>
+</header>
+
+<div class="drawerBack" id="drawerBack"></div>
+<aside class="drawer" id="drawer">
+  <div class="row" style="justify-content:space-between">
+    <div style="font-weight:900">Menü</div>
+    <button class="btn" id="closeDrawer">Kapat</button>
+  </div>
+
+  <div class="sectionTitle">Grup Yönetimi</div>
+  <div class="small">Kelime grupları oluşturup silebilirsin. Seçtiğin grup tüm modlarda kullanılır.</div>
+  <div class="row" style="margin-top:8px">
+    <input id="newGroupName" placeholder="Yeni grup adı (örn: İngilizce A1)" />
+    <button class="btn primary" id="addGroupBtn">Grup Oluştur</button>
+    <button class="btn bad" id="deleteGroupBtn">Seçili Grubu Sil</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sectionTitle">3 Farklı Veri Girişi</div>
+
+  <div class="card" style="margin-top:8px">
+    <div style="font-weight:800">1) Tek tek giriş</div>
+    <div class="small">Bir kelime ve anlamını yaz, seçili gruba kaydedilir.</div>
+    <div style="margin-top:8px" class="row">
+      <input id="oneWord" placeholder="Kelime" />
+      <input id="oneMeaning" placeholder="Anlamı" />
+      <button class="btn primary" id="addOneBtn">Kaydet</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:10px">
+    <div style="font-weight:800">2) Toplu liste yapıştır</div>
+    <div class="small">Her satır: <code>kelime - anlam</code> veya <code>kelime: anlam</code> (ikisi de olur).</div>
+    <div class="promptBox" style="margin-top:8px">
+      <div style="font-weight:800;margin-bottom:6px">Kolay hazırlama için hazır prompt</div>
+      <div class="small" id="promptText">
+        Bana sadece satır satır şu formatta liste üret: "kelime - anlam".
+        Her satırda 1 kelime olsun, numara veya ekstra açıklama ekleme.
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="copyPromptBtn">Prompt Kopyala</button>
+      </div>
+    </div>
+    <textarea id="bulkText" placeholder="Örn:
+apple - elma
+table - masa
+..."></textarea>
+    <div class="row">
+      <button class="btn primary" id="importBulkBtn">Listeyi İçe Aktar</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:10px">
+    <div style="font-weight:800">3) TXT / dosya yükle</div>
+    <div class="small">
+      Format: her satır <code>kelime - anlam</code> veya <code>kelime: anlam</code>.
+      Dosyayı seçince seçili gruba ekler.
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input type="file" id="fileInput" accept=".txt,text/plain" />
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  
+  <div class="divider"></div>
+
+  <div class="sectionTitle">Günlük Hatırlatma</div>
+  <div class="small">
+    Telefonuna bildirim gönderebilmek için bu sayfayı <b>Ana ekrana ekle (PWA)</b> ve bildirim izni ver.
+    Not: Tarayıcı/kilit ekran kısıtları nedeniyle hatırlatma, her cihazda %100 garanti değildir; ama uygulama açıkken kesin çalışır.
+  </div>
+  <div class="row" style="margin-top:8px">
+    <label class="pill"><input type="checkbox" id="remEnable" style="width:auto; margin-right:8px"> Aç</label>
+    <input id="remTime" type="time" />
+    <button class="btn primary" id="remSave">Kaydet</button>
+    <button class="btn" id="remTest">Test Bildirimi</button>
+  </div>
+  <div class="small" id="remStatus" style="margin-top:8px"></div>
+
+  <div class="divider"></div>
+
+  <div class="sectionTitle">APK (Android)</div>
+  <div class="small">
+    İstersen bunu APK'ya çevirebilirsin. En pratik yol: Bubblewrap (WebAPK). Bilgisayar zayıfsa GitHub Actions ile de build alınır.
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button class="btn" id="copyApkSteps">APK Adımlarını Kopyala</button>
+  </div>
+
+  <div class="sectionTitle">Veri / Sıfırlama</div>
+  <div class="small">Dışa aktar: Tüm verileri JSON indirir. JSON’u buraya yapıştırıp içe aktarabilirsin.</div>
+  <textarea id="jsonArea" placeholder="JSON içe aktarma alanı (opsiyonel)"></textarea>
+  <div class="row">
+    <button class="btn primary" id="importJsonBtn">JSON İçe Aktar</button>
+    <button class="btn bad" id="wipeBtn">HER ŞEYİ Sıfırla</button>
+  </div>
+
+  <div class="small danger" style="margin-top:10px">
+    Not: Silme/sıfırlama geri alınamaz.
+  </div>
+</aside>
+
+<main>
+  <div class="grid">
+    <section class="card">
+      <div style="font-weight:900">Kontrol Paneli</div>
+      <div class="small">Önce grup seç, sonra mod seç.</div>
+
+      <div class="divider"></div>
+
+      <div style="font-weight:800;margin-bottom:6px">Grup Seç</div>
+      <select id="groupSelect"></select>
+
+      <div class="divider"></div>
+
+      <div class="kpi" style="margin-top:10px">
+        <div class="box">
+          <div class="num" id="kNew">0</div>
+          <div class="lab">Yeni</div>
+        </div>
+        <div class="box">
+          <div class="num" id="kLearned">0</div>
+          <div class="lab">Öğrenildi</div>
+        </div>
+        <div class="box">
+          <div class="num" id="kHard">0</div>
+          <div class="lab">Zor</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="font-weight:800;margin-bottom:8px">Modlar</div>
+      <div class="row">
+        <button class="btn primary" id="modeFlash">Düz Kart</button>
+        <button class="btn primary" id="modeMCQ">4 Şıklı Test</button>
+        <button class="btn good" id="modeLearnedTest">Öğrenilenleri Test</button>
+        <button class="btn warn" id="modeHardReview">Zorları Ezberle</button>
+        <button class="btn" id="modeStats">İstatistik</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="small">
+        Notlar:
+        <ul>
+          <li>Butonlar aşağıda “yapışık” durur (kaydırma yok).</li>
+          <li>4 şıklı modda kelime kartına dokunursan anlamı yanında gösterir ve yanlış sayar.</li>
+          <li>Aynı mod içinde liste bitene kadar aynı kelime gelmez.</li>
+          <li>Cevaptan sonra doğru şık otomatik işaretlenir.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="playCard">
+      <div class="row" style="justify-content:space-between">
+        <div style="font-weight:900" id="playTitle">Mod seç</div>
+        <span class="pill" id="playPill">-</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="playArea">
+        <div class="small">Soldan bir mod seçince burada başlayacak.</div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LS_KEY = "kelime_ezber_v4";
+const $ = (id)=>document.getElementById(id);
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return { groups:{ "Varsayılan": { words:{} } }, selectedGroup:"Varsayılan" };
+    const st = JSON.parse(raw);
+    if(!st.groups) throw new Error("bad");
+
+    if(!st.selectedGroup || !st.groups[st.selectedGroup]){
+      st.selectedGroup = Object.keys(st.groups)[0] || "Varsayılan";
+      if(!st.groups[st.selectedGroup]) st.groups["Varsayılan"] = {words:{}};
+    }
+    for(const gname of Object.keys(st.groups)){
+      const g = st.groups[gname];
+      g.words ||= {};
+      for(const k of Object.keys(g.words)){
+        const w = g.words[k];
+        if(!w.meaning) w.meaning = "";
+        if(!w.status) w.status = "new";
+        if(w.mcqStreak == null) w.mcqStreak = 0;
+        if(w.mcqMiss == null) w.mcqMiss = 0;
+        if(w.seen == null) w.seen = 0;
+        if(w.rightTotal == null) w.rightTotal = 0;
+        if(w.wrongTotal == null) w.wrongTotal = 0;
+        if(w.lastSeenAt == null) w.lastSeenAt = 0;
+        if(w.lastWrongAt == null) w.lastWrongAt = 0;
+      }
+    }
+    return st;
+  }catch{
+    return { groups:{ "Varsayılan": { words:{} } }, selectedGroup:"Varsayılan" };
+  }
+}
+function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.style.display="block";
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=>t.style.display="none", 2200);
+}
+
+let state = loadState();
+
+/* Drawer */
+function openDrawer(){ $("drawerBack").classList.add("show"); $("drawer").classList.add("open"); }
+function closeDrawer(){ $("drawerBack").classList.remove("show"); $("drawer").classList.remove("open"); }
+$("menuBtn").onclick = openDrawer;
+$("closeDrawer").onclick = closeDrawer;
+$("drawerBack").onclick = closeDrawer;
+
+/* Grup */
+function refreshGroupSelect(){
+  const sel = $("groupSelect");
+  sel.innerHTML = "";
+  const names = Object.keys(state.groups);
+  if(names.length===0) state.groups["Varsayılan"] = {words:{}};
+
+  for(const g of Object.keys(state.groups)){
+    const opt = document.createElement("option");
+    opt.value=g; opt.textContent=g;
+    sel.appendChild(opt);
+  }
+  if(!state.groups[state.selectedGroup]) state.selectedGroup = Object.keys(state.groups)[0];
+  sel.value = state.selectedGroup;
+
+  saveState();
+  refreshKPIs();
+  setSubtitle();
+}
+$("groupSelect").onchange = (e)=>{
+  state.selectedGroup = e.target.value;
+  saveState();
+  refreshKPIs();
+  setSubtitle();
+  toast("Grup seçildi");
+  resetPlay(true);
+};
+
+$("addGroupBtn").onclick = ()=>{
+  const name = $("newGroupName").value.trim();
+  if(!name) return toast("Grup adı yaz");
+  if(state.groups[name]) return toast("Bu grup zaten var");
+  state.groups[name] = {words:{}};
+  state.selectedGroup = name;
+  $("newGroupName").value="";
+  saveState();
+  refreshGroupSelect();
+  toast("Grup oluşturuldu");
+  resetPlay(true);
+};
+$("deleteGroupBtn").onclick = ()=>{
+  const g = state.selectedGroup;
+  const keys = Object.keys(state.groups);
+  if(keys.length<=1) return toast("En az 1 grup kalmalı");
+  if(!confirm(`"${g}" grubu silinsin mi?`)) return;
+  delete state.groups[g];
+  state.selectedGroup = Object.keys(state.groups)[0];
+  saveState();
+  refreshGroupSelect();
+  toast("Grup silindi");
+  resetPlay(true);
+};
+
+/* Kelime ekleme */
+function normWord(w){ return (w||"").trim(); }
+
+function upsertWord(group, word, meaning){
+  word = normWord(word);
+  meaning = (meaning||"").trim();
+  if(!word || !meaning) return false;
+
+  const g = state.groups[group];
+  if(!g.words[word]){
+    g.words[word] = {
+      meaning,
+      status:"new",
+      mcqStreak:0,
+      mcqMiss:0,
+      seen:0,
+      rightTotal:0,
+      wrongTotal:0,
+      lastSeenAt:0,
+      lastWrongAt:0
+    };
+  }else{
+    g.words[word].meaning = meaning;
+  }
+  return true;
+}
+
+$("addOneBtn").onclick = ()=>{
+  const ok = upsertWord(state.selectedGroup, $("oneWord").value, $("oneMeaning").value);
+  if(!ok) return toast("Kelime ve anlam yaz");
+  $("oneWord").value=""; $("oneMeaning").value="";
+  saveState(); refreshKPIs();
+  updateProgressUI(); toast("Kaydedildi");
+  resetPlay(false);
+};
+
+function parseLines(text){
+  const lines = (text||"").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const items = [];
+  for(const ln of lines){
+    let w="", m="";
+    if(ln.includes(" - ")){
+      [w,m] = ln.split(" - ").map(s=>s.trim());
+    }else if(ln.includes(":")){
+      const idx = ln.indexOf(":");
+      w = ln.slice(0,idx).trim();
+      m = ln.slice(idx+1).trim();
+    }else if(ln.includes("\t")){
+      [w,m] = ln.split("\t").map(s=>s.trim());
+    }else{
+      continue;
+    }
+    if(w && m) items.push([w,m]);
+  }
+  return items;
+}
+
+$("importBulkBtn").onclick = ()=>{
+  const items = parseLines($("bulkText").value);
+  if(items.length===0) return toast("Geçerli satır bulunamadı");
+  let added=0;
+  for(const [w,m] of items) if(upsertWord(state.selectedGroup,w,m)) added++;
+  saveState(); refreshKPIs(); toast(`${added} kelime eklendi`);
+  $("bulkText").value="";
+  resetPlay(false);
+};
+
+$("fileInput").addEventListener("change", async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  toast("Dosya yüklendi ✅");
+  const txt = await f.text();
+  const items = parseLines(txt);
+  if(items.length===0) return toast("Dosyada geçerli satır yok");
+  let added=0;
+  for(const [w,m] of items) if(upsertWord(state.selectedGroup,w,m)) added++;
+  saveState(); refreshKPIs(); toast(`${added} kelime eklendi`);
+  e.target.value="";
+  resetPlay(false);
+});
+
+/* Prompt kopyala */
+$("copyPromptBtn").onclick = async ()=>{
+  try{ await navigator.clipboard.writeText($("promptText").textContent.trim()); toast("Prompt kopyalandı"); }
+  catch{ toast("Kopyalanamadı (izin yok)"); }
+};
+
+/* Export / Import */
+$("exportBtn").onclick = ()=>{
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "kelime-ezber-veri.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast("JSON indirildi");
+};
+
+$("importJsonBtn").onclick = ()=>{
+  const raw = $("jsonArea").value.trim();
+  if(!raw) return toast("JSON yapıştır");
+  try{
+    const incoming = JSON.parse(raw);
+    if(!incoming.groups) throw new Error("bad");
+    state = incoming;
+    state = loadStateFromObject(state);
+    saveState();
+    refreshGroupSelect();
+    toast("JSON içe aktarıldı");
+    $("jsonArea").value="";
+    resetPlay(true);
+  }catch{
+    toast("JSON okunamadı");
+  }
+};
+function loadStateFromObject(obj){
+  try{
+    const st = obj;
+    st.groups ||= {"Varsayılan":{words:{}}};
+    if(!st.selectedGroup || !st.groups[st.selectedGroup]){
+      st.selectedGroup = Object.keys(st.groups)[0] || "Varsayılan";
+      if(!st.groups[st.selectedGroup]) st.groups["Varsayılan"] = {words:{}};
+    }
+    for(const gname of Object.keys(st.groups)){
+      const g = st.groups[gname];
+      g.words ||= {};
+      for(const k of Object.keys(g.words)){
+        const w = g.words[k];
+        if(!w.meaning) w.meaning = "";
+        if(!w.status) w.status = "new";
+        if(w.mcqStreak == null) w.mcqStreak = 0;
+        if(w.mcqMiss == null) w.mcqMiss = 0;
+        if(w.seen == null) w.seen = 0;
+        if(w.rightTotal == null) w.rightTotal = 0;
+        if(w.wrongTotal == null) w.wrongTotal = 0;
+        if(w.lastSeenAt == null) w.lastSeenAt = 0;
+        if(w.lastWrongAt == null) w.lastWrongAt = 0;
+      }
+    }
+    return st;
+  }catch{
+    return { groups:{ "Varsayılan": { words:{} } }, selectedGroup:"Varsayılan" };
+  }
+}
+
+$("wipeBtn").onclick = ()=>{
+  if(!confirm("Tüm veriler silinsin mi?")) return;
+  localStorage.removeItem(LS_KEY);
+  state = loadState();
+  refreshGroupSelect();
+  toast("Sıfırlandı");
+  resetPlay(true);
+};
+
+/* KPI */
+function refreshKPIs(){
+  const g = state.groups[state.selectedGroup];
+  const words = Object.values(g.words);
+  let nNew=0,nLearned=0,nHard=0;
+  for(const w of words){
+    if(w.status==="learned") nLearned++;
+    else if(w.status==="hard") nHard++;
+    else nNew++;
+  }
+  $("kNew").textContent = nNew;
+  $("kLearned").textContent = nLearned;
+  $("kHard").textContent = nHard;
+}
+function setSubtitle(){
+  const g = state.groups[state.selectedGroup];
+  $("subtitle").textContent = `${state.selectedGroup} • ${Object.keys(g.words).length} kelime`;
+}
+
+/* Ağırlık */
+function computeWeight([key, w], mode){
+  const now = Date.now();
+  const seen = w.seen || 0;
+  const wrongTotal = w.wrongTotal || 0;
+  const rightTotal = w.rightTotal || 0;
+  const lastSeenAt = w.lastSeenAt || 0;
+  const lastWrongAt = w.lastWrongAt || 0;
+
+  const minutesSinceSeen = (now - lastSeenAt) / 60000;
+  const recencyBoost = Math.min(3, 0.5 + minutesSinceSeen / 20);
+
+  const seenPenalty = 1 / (1 + seen * 0.35);
+  const wrongBoost = 1 + wrongTotal * 0.25;
+  const rightPenalty = 1 / (1 + rightTotal * 0.12);
+
+  let statusMul = 1.0;
+  if(w.status === "hard") statusMul = 2.2;
+  else if(w.status === "learned") statusMul = 0.45;
+  else statusMul = 1.3;
+
+  if(mode === "hardReview") statusMul *= (w.status === "hard") ? 2.0 : 0.2;
+  if(mode === "learnedTest") statusMul *= (w.status === "learned") ? 2.0 : 0.1;
+
+  const minutesSinceWrong = (now - lastWrongAt) / 60000;
+  const recentWrongBoost = lastWrongAt ? Math.min(2.2, 1 + (60 / Math.max(5, minutesSinceWrong))) : 1;
+
+  return Math.max(0.0001, statusMul * recencyBoost * seenPenalty * wrongBoost * rightPenalty * recentWrongBoost);
+}
+function weightedPickIndex(arr, weightFn){
+  let total=0;
+  const ws = arr.map((e)=>{ const w = Math.max(0.0001, weightFn(e)); total += w; return w; });
+  let r = Math.random()*total;
+  for(let i=0;i<arr.length;i++){ r -= ws[i]; if(r<=0) return i; }
+  return arr.length-1;
+}
+
+/* Tekrarsız havuz */
+function wordPool(mode){
+  const g = state.groups[state.selectedGroup];
+  const entries = Object.entries(g.words);
+  if(mode==="learnedTest") return entries.filter(([k,v])=>v.status==="learned");
+  if(mode==="hardReview") return entries.filter(([k,v])=>v.status==="hard");
+  return entries;
+}
+
+let session = { mode:null, group:null, queueKeys:[], cursor:0, roundWrongKeys:[], inMiniReview:false };
+
+function rebuildQueue(mode){
+  const pool = wordPool(mode);
+  const remaining = pool.slice();
+  const ordered = [];
+  while(remaining.length){
+    const idx = weightedPickIndex(remaining, (e)=>computeWeight(e, mode));
+    ordered.push(remaining[idx][0]);
+    remaining.splice(idx,1);
+  }
+  session.queueKeys = ordered;
+  session.cursor = 0;
+  session.inMiniReview = false;
+  session.roundWrongKeys = [];
+}
+
+function ensureSession(mode){
+  if(session.mode !== mode || session.group !== state.selectedGroup){
+    session.mode = mode;
+    session.group = state.selectedGroup;
+    rebuildQueue(mode);
+  }else{
+    const poolKeys = new Set(wordPool(mode).map(([k])=>k));
+    const qKeys = session.queueKeys.filter(k=>poolKeys.has(k));
+    if(qKeys.length !== poolKeys.size){
+      rebuildQueue(mode);
+    }else{
+      session.queueKeys = qKeys;
+      if(session.cursor >= session.queueKeys.length) session.cursor = 0;
+    }
+  }
+}
+
+function nextKey(mode){
+  ensureSession(mode);
+  if(session.queueKeys.length===0) return null;
+
+  // Round finished
+  if(session.cursor >= session.queueKeys.length){
+    if(!session.inMiniReview && session.roundWrongKeys.length){
+      // Start mini review round (only wrong ones from the last round)
+      session.inMiniReview = true;
+      session.queueKeys = Array.from(new Set(session.roundWrongKeys));
+      session.roundWrongKeys = [];
+      session.cursor = 0;
+    }else{
+      // Mini review finished OR no wrongs -> new full round
+      rebuildQueue(mode);
+    }
+  }
+
+  const k = session.queueKeys[session.cursor];
+  session.cursor++;
+  return k;
+}
+
+/* Play */
+let currentMode = null;
+let currentKey = null;
+let answered = false;
+
+function resetPlay(hard){
+  currentMode = null;
+  currentKey = null;
+  answered = false;
+  if(hard){
+    session.mode=null; session.group=null; session.queueKeys=[]; session.cursor=0;
+  }else{
+    session.queueKeys=[]; session.cursor=0;
+  }
+  $("playTitle").textContent = "Mod seç";
+  $("playPill").textContent = "-";
+  $("playArea").innerHTML = `<div class="small">Soldan bir mod seçince burada başlayacak.</div>`;
+  setSubtitle();
+}
+
+/* Flash */
+function renderFlash(mode){
+  const k = nextKey(mode);
+  if(!k){ $("playArea").innerHTML = `<div class="small">Bu mod için kelime yok.</div>`; return; }
+  currentKey = k;
+  const obj = state.groups[state.selectedGroup].words[currentKey];
+
+  obj.seen = (obj.seen||0)+1;
+  obj.lastSeenAt = Date.now();
+  saveState(); refreshKPIs();
+  updateProgressUI();
+
+  $("playArea").innerHTML = `
+    <div class="questionSticky">
+      <div class="questionSticky">
+      <div class="wordRow">
+      <div class="wordCard" id="flashWordCard">
+        <div class="wordBig">${escapeHtml(currentKey)}</div>
+        <div class="small">Durum: <b>${labelStatus(obj.status)}</b></div>
+      </div>
+      <div class="sideInfo">
+        <div style="font-weight:900">Anlam</div>
+        <div class="meaningInline" id="flashMeaning">—</div>
+        <div class="small" style="margin-top:8px">Anlamı görmek için “Anlamı Göster”e bas.</div>
+      </div>
+    </div>
+      <div class="progressWrap"><div class="progressBar" id="progBar"></div></div>
+      <div class="progressText"><span id="progTag">Tur</span><span id="progTxt">0 / 0</span></div>
+    </div>
+
+    <div class="playFooter">
+      <div class="row">
+        <button class="btn" id="revealBtn">Anlamı Göster</button>
+        <button class="btn good" id="knowBtn" disabled>Biliyorum</button>
+        <button class="btn bad" id="dontBtn" disabled>Bilmiyorum</button>
+        <button class="btn" id="nextBtn">Sonraki</button>
+      </div>
+    </div>
+  `;
+  updateProgressUI();
+
+  $("revealBtn").onclick = ()=>{
+    $("flashMeaning").textContent = obj.meaning;
+    $("knowBtn").disabled=false;
+    $("dontBtn").disabled=false;
+  };
+  $("knowBtn").onclick = ()=>{
+    obj.status = "learned";
+    obj.mcqStreak = 0; obj.mcqMiss = 0;
+    saveState(); refreshKPIs();
+    renderFlash(mode);
+  };
+  $("dontBtn").onclick = ()=>{
+    session.roundWrongKeys.push(currentKey);
+    renderFlash(mode);
+  };
+  $("nextBtn").onclick = ()=>renderFlash(mode);
+}
+
+/* MCQ */
+function renderMCQ(mode){
+  const k = nextKey(mode);
+  if(!k){ $("playArea").innerHTML = `<div class="small">Bu mod için kelime yok.</div>`; return; }
+  currentKey = k;
+  answered = false;
+
+  const obj = state.groups[state.selectedGroup].words[currentKey];
+  obj.seen = (obj.seen||0)+1;
+  obj.lastSeenAt = Date.now();
+
+  const pool = wordPool(mode);
+  const others = pool.filter(([kk,v])=>kk!==currentKey).map(([kk,v])=>v.meaning);
+  const wrongs = shuffle(others).slice(0,3);
+  while(wrongs.length<3) wrongs.push("—");
+
+  const correct = obj.meaning;
+  const options = shuffle([correct, ...wrongs]);
+
+  saveState(); refreshKPIs();
+
+  $("playArea").innerHTML = `
+    <div class="wordRow">
+      <div class="wordCard" id="mcqWordCard" title="Dokun: anlamı gösterir ve yanlış sayar">
+        <div class="wordBig">${escapeHtml(currentKey)}</div>
+        <div class="small">Üst üste doğru: <b>${obj.mcqStreak||0}</b> • Üst üste yanlış: <b>${obj.mcqMiss||0}</b> • Durum: <b>${labelStatus(obj.status)}</b></div>
+        <div class="small" style="margin-top:6px;color:var(--muted)">İpucu: Kelimeye dokunursan anlamı görürsün ama yanlış sayılır.</div>
+      </div>
+
+      <div class="sideInfo" id="mcqSide">
+        <div style="font-weight:900">Sonuç / Anlam</div>
+        <div class="small" id="mcqResult">Cevap verince burada görünecek.</div>
+        <div class="meaningInline" id="mcqMeaning">—</div>
+      </div>
+    </div>
+      <div class="progressWrap"><div class="progressBar" id="progBar"></div></div>
+      <div class="progressText"><span id="progTag">Tur</span><span id="progTxt">0 / 0</span></div>
+    </div>
+
+    <div class="answers mcqSticky" id="answers"></div>
+
+    <div class="playFooter">
+      <div class="row">
+        <button class="btn" id="skipBtn">Atla</button>
+        <button class="btn primary" id="nextBtn">Sonraki</button>
+      </div>
+    </div>
+  `;
+  updateProgressUI();
+
+  const answersEl = $("answers");
+
+  function markOptions(selectedBtn){
+    const btns = Array.from(document.querySelectorAll("#answers button"));
+    for(const b of btns){
+      if(b.textContent === correct) b.classList.add("optCorrect");
+    }
+    if(selectedBtn && selectedBtn.textContent !== correct){
+      selectedBtn.classList.add("optWrong");
+    }
+  }
+
+  function applyAnswer(isCorrect, selectedBtn){
+    if(answered) return;
+    answered = true;
+
+    // Şıkları kilitle
+    Array.from(document.querySelectorAll("#answers button")).forEach(x=>x.disabled=true);
+
+    if(isCorrect){
+      obj.rightTotal = (obj.rightTotal||0) + 1;
+      obj.mcqStreak = (obj.mcqStreak||0) + 1;
+      obj.mcqMiss = 0;
+
+      if(obj.mcqStreak >= 3){
+        obj.status = "learned";
+        obj.mcqStreak = 0;
+        obj.mcqMiss = 0;
+      }
+      $("mcqResult").innerHTML = `<span class="badgeOk">Doğru ✅</span>`;
+      // doğru cevapta anlamı göstermeye devam (istersen kaldırırım)
+      $("mcqMeaning").textContent = correct;
+    }else{
+      session.roundWrongKeys.push(currentKey);
+      obj.wrongTotal = (obj.wrongTotal||0) + 1;
+      obj.lastWrongAt = Date.now();
+      obj.mcqMiss = (obj.mcqMiss||0) + 1;
+      obj.mcqStreak = 0;
+
+      if(mode === "learnedTest"){
+        obj.status = "new";
+        obj.mcqStreak = 0;
+        obj.mcqMiss = 0;
+        $("mcqResult").innerHTML = `<span class="badgeBad">Yanlış ❌</span> <span class="pill" style="margin-left:8px">Öğrenilenden çıkarıldı</span>`;
+      }else{
+        if(obj.mcqMiss >= 3){
+          obj.status = "hard";
+          obj.mcqStreak = 0;
+          obj.mcqMiss = 0;
+        }
+        $("mcqResult").innerHTML = `<span class="badgeBad">Yanlış ❌</span>`;
+      }
+      $("mcqMeaning").textContent = correct;
+    }
+
+    markOptions(selectedBtn);
+
+    saveState();
+    refreshKPIs();
+  }
+
+  // Kelime kartına dokunma = anlam göster + yanlış say + doğru şıkkı işaretle
+  $("mcqWordCard").onclick = ()=>{
+    applyAnswer(false, null);
+  };
+
+  options.forEach((opt)=>{
+    const b = document.createElement("button");
+    b.className="btn";
+    b.textContent = opt;
+    b.onclick = ()=>{
+      applyAnswer(opt === correct, b);
+    };
+    answersEl.appendChild(b);
+  });
+
+  $("skipBtn").onclick = ()=>{
+    toast("Atlandı");
+    renderMCQ(mode);
+  };
+  $("nextBtn").onclick = ()=>{
+    renderMCQ(mode);
+  };
+}
+
+
+function getProgressInfo(){
+  const total = session.queueKeys.length || 0;
+  const current = Math.min(session.cursor, total);
+  return { current, total, inMiniReview: !!session.inMiniReview };
+}
+function updateProgressUI(){
+  const p = getProgressInfo();
+  const bar = document.getElementById("progBar");
+  const txt = document.getElementById("progTxt");
+  const tag = document.getElementById("progTag");
+  if(!bar || !txt || !tag) return;
+  const pct = (p.total>0) ? Math.round((p.current / p.total) * 100) : 0;
+  bar.style.width = pct + "%";
+  txt.textContent = p.total>0 ? `${p.current} / ${p.total}` : "0 / 0";
+  tag.textContent = p.inMiniReview ? "Mini tekrar turu" : "Tur";
+}
+
+function labelStatus(s){
+  if(s==="learned") return "Öğrenildi";
+  if(s==="hard") return "Zor";
+  return "Yeni";
+}
+
+function startMode(mode){
+  currentMode = mode;
+  session.mode=null; session.group=null; session.queueKeys=[]; session.cursor=0;
+
+  if(mode==="flash"){
+    $("playTitle").textContent="Düz Kart";
+    $("playPill").textContent="Kart";
+    renderFlash("flash");
+  }else if(mode==="mcq"){
+    $("playTitle").textContent="4 Şıklı Test";
+    $("playPill").textContent="Test";
+    renderMCQ("mcq");
+  }else if(mode==="learnedTest"){
+    $("playTitle").textContent="Öğrenilenleri Test";
+    $("playPill").textContent="Öğrenilen";
+    renderMCQ("learnedTest");
+  }else if(mode==="hardReview"){
+    $("playTitle").textContent="Zorları Ezberle";
+    $("playPill").textContent="Zor";
+    renderFlash("hardReview");
+  }
+}
+
+$("modeFlash").onclick = ()=>startMode("flash");
+$("modeMCQ").onclick = ()=>startMode("mcq");
+$("modeLearnedTest").onclick = ()=>startMode("learnedTest");
+$("modeHardReview").onclick = ()=>startMode("hardReview");
+$("modeStats").onclick = ()=>{ currentMode="stats"; renderStats(); };
+
+/* Utils */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, (c)=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+
+/* Keyboard shortcuts (PC/klavye) */
+document.addEventListener("keydown", (e)=>{
+  // ignore when typing in inputs/textareas
+  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+  if(tag === "input" || tag === "textarea" || tag === "select") return;
+
+  // helper to click if exists
+  const click = (id)=>{ const el = document.getElementById(id); if(el && !el.disabled) el.click(); };
+
+  // Flash mode: R=Reveal, 1=Know, 2=Don't, RightArrow=Next
+  if(currentMode === "flash" || currentMode === "hardReview"){
+    if(e.key === "r" || e.key === "R") { e.preventDefault(); click("revealBtn"); }
+    if(e.key === "1") { e.preventDefault(); click("knowBtn"); }
+    if(e.key === "2") { e.preventDefault(); click("dontBtn"); }
+    if(e.key === "ArrowRight" || e.key === "Enter") { e.preventDefault(); click("nextBtn"); }
+  }
+
+  // MCQ modes: 1-4 choose options; RightArrow/Enter next; s=skip
+  if(currentMode === "mcq" || currentMode === "learnedTest"){
+    if(["1","2","3","4"].includes(e.key)){
+      e.preventDefault();
+      const idx = parseInt(e.key,10)-1;
+      const btns = Array.from(document.querySelectorAll("#answers button"));
+      if(btns[idx] && !btns[idx].disabled) btns[idx].click();
+    }
+    if(e.key === "s" || e.key === "S") { e.preventDefault(); click("skipBtn"); }
+    if(e.key === "ArrowRight" || e.key === "Enter") { e.preventDefault(); click("nextBtn"); }
+    if(e.key === "r" || e.key === "R") { e.preventDefault(); click("mcqWordCard"); } // reveal via word card (counts wrong)
+  }
+});
+
+
+/* Touch swipe support (mobile) */
+(function(){
+  let sx=0, sy=0, ex=0, ey=0, t=0;
+  const THRESH_X = 60; // px
+  const THRESH_Y = 60;
+  const MAX_TIME = 700;
+
+  document.addEventListener("touchstart", (e)=>{
+    if(!e.touches || e.touches.length!==1) return;
+    const touch = e.touches[0];
+    sx = touch.clientX; sy = touch.clientY;
+    t = Date.now();
+  }, {passive:true});
+
+  document.addEventListener("touchend", (e)=>{
+    const dt = Date.now() - t;
+    if(dt > MAX_TIME) return;
+    ex = (e.changedTouches && e.changedTouches[0].clientX) || 0;
+    ey = (e.changedTouches && e.changedTouches[0].clientY) || 0;
+    const dx = ex - sx;
+    const dy = ey - sy;
+
+    // horizontal swipe preferred
+    if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > THRESH_X){
+      // swipe right -> next
+      if(dx > 0){
+        const next = document.getElementById("nextBtn");
+        if(next) next.click();
+      }else{
+        // swipe left -> reveal / word tap
+        if(currentMode === "flash" || currentMode === "hardReview"){
+          const rev = document.getElementById("revealBtn");
+          if(rev) rev.click();
+        }else if(currentMode === "mcq" || currentMode === "learnedTest"){
+          const card = document.getElementById("mcqWordCard");
+          if(card) card.click(); // reveal meaning (counts wrong)
+        }
+      }
+    }
+
+    // vertical swipe (optional): up/down for know/dont in flash
+    if(Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > THRESH_Y){
+      if(currentMode === "flash" || currentMode === "hardReview"){
+        if(dy < 0){
+          // swipe up -> know
+          const k = document.getElementById("knowBtn");
+          if(k && !k.disabled) k.click();
+        }else{
+          // swipe down -> don't know
+          const d = document.getElementById("dontBtn");
+          if(d && !d.disabled) d.click();
+        }
+      }
+    }
+  }, {passive:true});
+})();
+
+
+/* ---------- Stats (İstatistik) ---------- */
+function renderStats(){
+  const g = state.groups[state.selectedGroup];
+  const entries = Object.entries(g.words);
+  const total = entries.length;
+  let learned=0, hard=0, nw=0;
+  let right=0, wrong=0;
+  for(const [k,w] of entries){
+    if(w.status==="learned") learned++;
+    else if(w.status==="hard") hard++;
+    else nw++;
+    right += (w.rightTotal||0);
+    wrong += (w.wrongTotal||0);
+  }
+  const attempts = right + wrong;
+  const acc = attempts>0 ? Math.round((right/attempts)*100) : 0;
+
+  // hardest 20 by wrongTotal
+  const hardest = entries
+    .map(([k,w])=>({k, wrong:(w.wrongTotal||0), meaning:w.meaning, status:w.status}))
+    .filter(x=>x.wrong>0)
+    .sort((a,b)=>b.wrong-a.wrong)
+    .slice(0,20);
+
+  const hardHtml = hardest.length
+    ? `<div class="divider"></div>
+       <div style="font-weight:900">En zor 20</div>
+       <div class="small">En çok yanlış yaptıkların</div>
+       <div style="margin-top:10px; display:grid; gap:10px">
+         ${hardest.map((x,i)=>`
+           <div class="card" style="padding:12px; margin:0">
+             <div style="font-weight:900">${i+1}. ${escapeHtml(x.k)} <span class="pill" style="margin-left:8px">Yanlış: ${x.wrong}</span></div>
+             <div class="meaningInline" style="margin-top:6px">${escapeHtml(x.meaning||"")}</div>
+             <div class="small" style="margin-top:6px">Durum: <b>${labelStatus(x.status)}</b></div>
+           </div>
+         `).join("")}
+       </div>`
+    : `<div class="divider"></div><div class="small">Henüz yanlış yaptığın kelime yok.</div>`;
+
+  $("playTitle").textContent="İstatistik";
+  $("playPill").textContent="Stats";
+  $("playArea").innerHTML = `
+    <div class="card" style="margin:0">
+      <div style="font-weight:900">Genel</div>
+      <div class="divider"></div>
+      <div class="kpi">
+        <div class="box"><div class="num">${total}</div><div class="lab">Toplam</div></div>
+        <div class="box"><div class="num">${learned}</div><div class="lab">Öğrenildi</div></div>
+        <div class="box"><div class="num">${hard}</div><div class="lab">Zor</div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="kpi">
+        <div class="box"><div class="num">${nw}</div><div class="lab">Yeni</div></div>
+        <div class="box"><div class="num">${acc}%</div><div class="lab">Doğruluk</div></div>
+        <div class="box"><div class="num">${attempts}</div><div class="lab">Toplam deneme</div></div>
+      </div>
+    </div>
+    ${hardHtml}
+  `;
+}
+
+/* ---------- Daily reminder (best-effort) ---------- */
+const REM_KEY = "kelime_reminder_v1";
+function loadReminder(){
+  try{
+    const raw = localStorage.getItem(REM_KEY);
+    if(!raw) return {enabled:false, time:"20:00", lastFired:""};
+    const r = JSON.parse(raw);
+    return {enabled:!!r.enabled, time:r.time||"20:00", lastFired:r.lastFired||""};
+  }catch{
+    return {enabled:false, time:"20:00", lastFired:""};
+  }
+}
+function saveReminder(r){ localStorage.setItem(REM_KEY, JSON.stringify(r)); }
+
+let reminder = loadReminder();
+
+async function ensureNotifyPermission(){
+  if(!("Notification" in window)) return {ok:false, msg:"Bu cihazda bildirim desteklenmiyor."};
+  if(Notification.permission === "granted") return {ok:true, msg:"Bildirim izni var."};
+  if(Notification.permission === "denied") return {ok:false, msg:"Bildirim izni kapalı (Tarayıcı ayarlarından aç)."};
+  try{
+    const p = await Notification.requestPermission();
+    if(p === "granted") return {ok:true, msg:"Bildirim izni verildi."};
+    return {ok:false, msg:"Bildirim izni verilmedi."};
+  }catch{
+    return {ok:false, msg:"Bildirim izni alınamadı."};
+  }
+}
+
+function showLocalNotification(title, body){
+  try{
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification(title, { body });
+      return true;
+    }
+  }catch{}
+  return false;
+}
+
+function updateReminderUI(){
+  const en = document.getElementById("remEnable");
+  const tm = document.getElementById("remTime");
+  const st = document.getElementById("remStatus");
+  if(!en || !tm || !st) return;
+  en.checked = reminder.enabled;
+  tm.value = reminder.time || "20:00";
+  st.textContent = reminder.enabled
+    ? `Açık • Saat: ${reminder.time}`
+    : "Kapalı";
+}
+
+async function wireReminderUI(){
+  const en = document.getElementById("remEnable");
+  const tm = document.getElementById("remTime");
+  const saveBtn = document.getElementById("remSave");
+  const testBtn = document.getElementById("remTest");
+  const st = document.getElementById("remStatus");
+  const copyApk = document.getElementById("copyApkSteps");
+  if(!en || !tm || !saveBtn || !testBtn || !st) return;
+
+  updateReminderUI();
+
+  saveBtn.onclick = async ()=>{
+    reminder.enabled = en.checked;
+    reminder.time = tm.value || "20:00";
+    saveReminder(reminder);
+    if(reminder.enabled){
+      const perm = await ensureNotifyPermission();
+      st.textContent = perm.ok ? `Açık • Saat: ${reminder.time}` : perm.msg;
+    }else{
+      st.textContent = "Kapalı";
+    }
+    toast("Kaydedildi");
+  };
+
+  testBtn.onclick = async ()=>{
+    const perm = await ensureNotifyPermission();
+    if(!perm.ok) return toast(perm.msg);
+    showLocalNotification("Kelime Ezber", "Test bildirimi ✅");
+    toast("Test bildirimi gönderildi");
+  };
+
+  if(copyApk){
+    const steps =
+`APK için kısa yol (Bubblewrap):
+1) Bu projeyi bir klasöre koy: index.html, manifest.json, sw.js
+2) HTTPS bir URL'ye yayınla (GitHub Pages olur)
+3) PC'de:
+   npm i -g @bubblewrap/cli
+   bubblewrap init --manifest=https://SENIN-URL/manifest.json
+   bubblewrap build
+Çıkan app-release-signed.apk dosyasını telefona kur.
+
+Alternatif: GitHub Actions ile otomatik APK build.`;
+    copyApk.onclick = async ()=>{
+      try{
+        await navigator.clipboard.writeText(steps);
+        toast("APK adımları kopyalandı");
+      }catch{
+        toast("Kopyalanamadı");
+      }
+    };
+  }
+}
+
+function startReminderLoop(){
+  // best-effort: checks every 30s while app/pwa is open
+  setInterval(()=>{
+    if(!reminder.enabled) return;
+    if(!("Notification" in window) || Notification.permission !== "granted") return;
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,"0");
+    const mm = String(now.getMinutes()).padStart(2,"0");
+    const today = now.toISOString().slice(0,10);
+    const target = reminder.time || "20:00";
+    if(`${hh}:${mm}` === target && reminder.lastFired !== today){
+      const ok = showLocalNotification("Kelime Ezber", "Günlük tekrar zamanı 💪");
+      if(ok){
+        reminder.lastFired = today;
+        saveReminder(reminder);
+      }
+    }
+  }, 30000);
+}
+
+/* ---------- Service worker / PWA ---------- */
+async function registerSW(){
+  if(!("serviceWorker" in navigator)) return;
+  try{
+    await navigator.serviceWorker.register("./sw.js");
+  }catch{}
+}
+
+/* init */
+refreshGroupSelect();
+wireReminderUI();
+startReminderLoop();
+registerSW();
+resetPlay(true);
+</script>
+</body>
+</html>
